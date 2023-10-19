@@ -1,34 +1,34 @@
-﻿using Refit;
+﻿#define DEBUG
+using Refit;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
 using RSinfoRetriever.Endpoints;
 using RSinfoRetriever.Models.RS;
+using RSinfoRetriever.Clients;
+using RSinfoRetriever.Models.DPS;
 
-namespace rsir;
+namespace RSinfoRetriever;
 public class EntryPoint {
     public static void Main(string[] args) {
 
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            //.AddJsonFile("appsettings.dev.json", optional: true, reloadOnChange: true)
-            //.AddEnvironmentVaraiable()
-            .Build();
-
+        var config = SetupConfig();
         var rsServicePath = config["externalServices:rs_dev"];
-        var rsPayerClient = RestService.For<IRsPayerClient>(rsServicePath);
+        var rsPayerClient = RestService.For<IRsPayerClient>(rsServicePath ?? 
+            throw new ArgumentException("Path to rs host should not be null"));
 
-        var result = rsPayerClient
-            .GetPayerInfo(
-            1
-            ,Guid.NewGuid().ToString()
-            ,new PayerInfoRequest {
-            }
-            )
-            .GetAwaiter()
-            .GetResult();
+        var dpsServicePath = config["externalServices:dps_consent_dev"];
+        var dpsConsentClient = RestService.For<IDpsConsentClient>(dpsServicePath ?? 
+            throw new ArgumentException("Path to dps host should not be null"));
 
+        RsOperations.GetRsPayerInfo(rsPayerClient);
 
-        Console.WriteLine($"This must be a value: {result}");
+    }
+
+    private static IConfiguration SetupConfig() {
+         return new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    //.AddJsonFile("appsettings.dev.json", optional: true, reloadOnChange: true)
+                    //.AddEnvironmentVaraiable()
+                    .Build();
     }
 
 }

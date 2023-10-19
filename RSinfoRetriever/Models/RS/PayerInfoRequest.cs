@@ -1,5 +1,5 @@
 ﻿namespace RSinfoRetriever.Models.RS;
-internal class PayerInfoRequest {
+public class PayerInfoRequest {
     public string consentId { get; set; } = null!;
     public string personalId { get; set; } = null!;
     public string mobile { get; set; } = null!;
