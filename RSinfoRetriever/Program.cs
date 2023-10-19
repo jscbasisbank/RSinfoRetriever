@@ -2,9 +2,8 @@
 using Refit;
 using Microsoft.Extensions.Configuration;
 using RSinfoRetriever.Endpoints;
-using RSinfoRetriever.Models.RS;
 using RSinfoRetriever.Clients;
-using RSinfoRetriever.Models.DPS;
+using IronXL;
 
 namespace RSinfoRetriever;
 public class EntryPoint {
@@ -19,7 +18,10 @@ public class EntryPoint {
         var dpsConsentClient = RestService.For<IDpsConsentClient>(dpsServicePath ?? 
             throw new ArgumentException("Path to dps host should not be null"));
 
-        RsOperations.GetRsPayerInfo(rsPayerClient);
+        ExcelFacade exl = new ExcelFacade("LOAN (003).xlsx");
+        exl.GetPayers();
+
+        //RsOperations.GetRsPayerInfo(rsPayerClient, null);
 
     }
 
