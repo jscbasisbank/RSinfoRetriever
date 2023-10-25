@@ -9,7 +9,8 @@ public static class DpsOperations {
         , StartProcessRequest request
         , string guid) {
 
-            Console.WriteLine($"Obtaining consent for: {request?.personalId}");
+        Console.WriteLine("---------------------------------------");
+        Console.WriteLine($"Obtaining consent for: {request?.personalId}");
             try {
                 var response = client.StartProcess(
                     guid
@@ -35,7 +36,8 @@ public static class DpsOperations {
                  return response.consentId;
             }
             catch (Exception ex) {
-                Console.WriteLine($"Could not obtaing consentId; Reason: {ex?.Message}");          
+                Console.WriteLine($"Could not obtaing consentId; Reason: {ex?.Message}");
+                Console.WriteLine("---------------------------------------");
                 throw;
             }
         }
@@ -61,6 +63,7 @@ public static class DpsOperations {
         }
         catch (Exception ex) {
             Console.WriteLine($"Could not approve: {ex.Message}");
+            Console.WriteLine("---------------------------------------");
             throw;
         }
     }    

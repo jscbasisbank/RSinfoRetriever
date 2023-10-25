@@ -26,9 +26,12 @@ public class EntryPoint {
             try {
                 ProgramLoop(config, dbclient);
 
-                Console.WriteLine();
-                Console.Write($"Type 'r' to restart the process; enter to exit: ");
-                string continueProcess = Console.ReadLine();
+                Console.Write($"\nType 'r' to restart the process; enter to exit: ");
+                string? continueProcess = Console.ReadLine();
+
+                if (continueProcess == null) {
+                    break;
+                }
                 if(continueProcess != "r") {
                     break;
                 }
@@ -70,7 +73,7 @@ public class EntryPoint {
         string? bulkId = Console.ReadLine();
 
         int bulkIdInt = TryConvertBulkId(bulkId);
-        Console.WriteLine($"Retrieving CLIENTS with bulkId: {bulkId}");
+        Console.WriteLine($"Retrieving CLIENTS with bulkId: {bulkId}\n");
 
         return bulkIdInt;
     }
@@ -90,13 +93,13 @@ public class EntryPoint {
         var bulkClients = dbclient.GetBulkClinetsForRS(bulkId);
         List<Client> clients = new();
 
-        Console.WriteLine("Retrieving data for clients from database, please wait...");
+        Console.WriteLine("Retrieving data for clients from database, please wait...\n");
         foreach (var bulkClient in bulkClients) {
 
             Client? client = dbclient.GetClientFromBank2000(bulkClient.CLIENT_NO);
             clients.Add(client);
         }
-        Console.WriteLine($"Finished retrieving client data from DB; Retrieved: {clients.Count} clients;");
+        Console.WriteLine($"Finished retrieving client data from DB; Retrieved: {clients.Count} clients; \n");
 
         return clients;
     }
@@ -109,6 +112,7 @@ public class EntryPoint {
 
         int totalClientsCount = clients.Count();
         int successfulCount = 0;
+        int unsuccessfulCount = 0;
 
         var dpsServicePath = config["externalServices:dps_consent"];
         var dpsConsentClient = RestService.For<IDpsConsentClient>(dpsServicePath ??
@@ -147,24 +151,29 @@ public class EntryPoint {
                 Regex rexPersonalId = new Regex(@"^\d{11}$");
 
                 if(client is null) {
+                    unsuccessfulCount++;   
                     continue;
                 }
 
                 if(client.PERSONAL_ID is null) {
+                    unsuccessfulCount++;   
                     dbclient.UpdateClientStatus(client.CLIENT_NO, 3, "კლიენტი ვერ მოეძებნა");
                     continue;
                 }
 
 
                 if(client.SMS_MOBILE_PHONE is null) {
+                    unsuccessfulCount++;   
                     dbclient.UpdateClientStatus(client.CLIENT_NO, 3, "კლიენტს ვერ მოეძებნა მობილურის ნომერი");
                     continue;
                 }
 
                 if(!rexPhone.IsMatch(client.SMS_MOBILE_PHONE!)) {
+                    unsuccessfulCount++;   
                     dbclient.UpdateClientStatus(client.CLIENT_NO, 3, "ცუდი ფორმატის მობილურის ნომერი");
                     continue;
                 } else if(!rexPersonalId.IsMatch(client.PERSONAL_ID)) {
+                    unsuccessfulCount++;   
                     dbclient.UpdateClientStatus(client.CLIENT_NO, 3, "ცუდი ფორმატის პირადობის ნომერი");
                     continue;
                 }
@@ -177,7 +186,7 @@ public class EntryPoint {
 
                 var consent = DpsOperations.ApproveConsent(
                     dpsConsentClient
-                    , new Models.DPS.ApproveRequest { channel = "bulk", ipAddress = "127.0.0.1" }
+                    , new Models.DPS.ApproveRequest { channel = dpsConfig.channel, ipAddress = dpsConfig.ipAddress }
                     , dpsSpResponse
                     , dpsGuid
                     );
@@ -190,16 +199,25 @@ public class EntryPoint {
                    );
 
                 if(rsStatus is not null ) {
+                    unsuccessfulCount++;
                     dbclient.UpdateClientStatus(client.CLIENT_NO, 2, $"rs შეცდომა: {rsStatus}");
                     continue;
                 }
+                
+                successfulCount++;
+                Console.WriteLine(
+                    $"Total: {totalClientsCount}; \t" +
+                    $" Successful: {successfulCount}; \t" +
+                    $" Unsuccessful: {unsuccessfulCount}; \t" +
+                    $" Remaining: {totalClientsCount - (successfulCount + unsuccessfulCount)} \n");
+                Console.WriteLine("---------------------------------------");
 
-                Console.WriteLine($"{++successfulCount}/{totalClientsCount}");
-                Console.WriteLine();
                 dbclient.UpdateClientStatus(client.CLIENT_NO, 1, "წარმატებით დასრულდა");
 
             } catch(Exception ex) {
+                unsuccessfulCount++;
                 dbclient.UpdateClientStatus(client.CLIENT_NO, 2, $"{ex.Message}");
+                Console.WriteLine("---------------------------------------");
             }
         }
 

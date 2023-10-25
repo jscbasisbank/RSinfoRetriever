@@ -29,8 +29,7 @@ public static class RsOperations {
             if (statusCode != null) {
                 resultStatus = statusCode;
                 if (statusCode != 200) {
-
-                    Console.WriteLine($"{ex.Message}");
+                    Console.WriteLine($"{ex.Message} \n");
                 }
             }
         }
