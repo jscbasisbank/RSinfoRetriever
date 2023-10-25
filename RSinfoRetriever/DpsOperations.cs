@@ -8,19 +8,20 @@ public static class DpsOperations {
         IDpsConsentClient client
         , StartProcessRequest request
         , string guid) {
+
             Console.WriteLine($"Obtaining consent for: {request?.personalId}");
             try {
                 var response = client.StartProcess(
                     guid
                     , new StartProcessRequest {
-                        channel = "bulk"
-                        , applicationName = "rs"
-                        , serviceName = "console-app"
-                        , lang = "GEO"
-                        , personalId = "piradi nomeri"
-                        , action = 2
-                        , ipAddress = "127.0.0.1"
-                        , date = "2023-10-19"
+                        channel = request.channel
+                        , applicationName = request.applicationName
+                        , serviceName = request.serviceName
+                        , lang = request.lang
+                        , personalId = request.personalId 
+                        , action =request.action 
+                        , ipAddress = request.ipAddress 
+                        , date = request.date 
                         , extraData = new ExtraData[] {
                             new ExtraData {
                                 lang = "GEO"
@@ -44,16 +45,16 @@ public static class DpsOperations {
         , string guid
         ) {
 
-        Console.WriteLine("Approving consent: ");
+        Console.WriteLine($"Approving consent: {consentId}");
         try {
             var response = client.Approve(
                 consentId
                 , guid 
                 , new ApproveRequest
                 {
-                    channel = "bulk"
+                    channel = request.channel
                     ,
-                    ipAddress = "127.0.0.1"
+                    ipAddress = request.ipAddress 
                 }).GetAwaiter().GetResult();
             Console.WriteLine($"Consent approved: {response.consentId}");
             return response.consentId;

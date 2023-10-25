@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.15" />
     <PackageReference Include="IronXL.Excel" Version="2023.10.8" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0-preview3.23201.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0-rc.2.23479.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0-rc.2.23479.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -17,7 +19,7 @@
 
   <ItemGroup>
     <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="LOAN %28003%29.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -1,28 +1,40 @@
 ﻿
+using Refit;
 using RSinfoRetriever.Endpoints;
 using RSinfoRetriever.Models.RS;
 
 namespace RSinfoRetriever;
 public static class RsOperations {
 
-    public static void GetRsPayerInfo(IRsPayerClient client, PayerInfoRequest request) {
-        Console.WriteLine($"Retrieving Rs info for: {client}");
+    public async static Task<long?> GetRsPayerInfo(IRsPayerClient client, PayerInfoRequest request) {
+
+        long? resultStatus = null;
+        Console.WriteLine($"Retrieving Rs info for: {request.personalId}");
         try {
-            var result = client
+            var result = await client
                   .GetPayerInfo(
                   1
                   , Guid.NewGuid().ToString()
-                  , request 
-                  )
-                  .GetAwaiter()
-                  .GetResult();
+                  , request
+                  );
 
+            Console.WriteLine($"Successfully retrieved");
+        }
+        catch (ApiException ex) {
 
-            Console.WriteLine($"This must be a value: {result}");
+            var apiEx = await ex.GetContentAsAsync<Dictionary<string, dynamic>>();
+            dynamic statusCode = null; 
+            var isSuccessful = apiEx?.TryGetValue("StatusCode", out statusCode);
+
+            if (statusCode != null) {
+                resultStatus = statusCode;
+                if (statusCode != 200) {
+
+                    Console.WriteLine($"{ex.Message}");
+                }
+            }
         }
-        catch (Exception ex) {
-            Console.WriteLine($"Could not retrieve info from RS; Reason: {ex.Message}");
-            throw;
-        }
+
+        return resultStatus; 
     }
 }
